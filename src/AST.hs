@@ -23,7 +23,7 @@ data Term
 data Factor
   = Expression Expression
   | Literal Literal
-  | Variable String
+  | Variable Variable
   deriving Show
 
 data Literal
@@ -31,6 +31,13 @@ data Literal
   | Integer Integer
   deriving Show
 
+type Variable = String
+
+data Statement
+  = Assign Variable Expression
+  | EmptyStatement
+  deriving Show
+
 data Module
-  = Module Expression
+  = Module [Statement]
   deriving Show

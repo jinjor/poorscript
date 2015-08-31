@@ -72,11 +72,31 @@ factor' = (try $
   <|> (try $ literal >>= return . A.Literal)
   <|> (variable >>= return . A.Variable)
 
-variable :: Parser String
+variable :: Parser A.Variable
 variable = do
     head <- lower
     tail <- many alphaNum
     return $ head : tail
+
+assign :: Parser (A.Variable, A.Expression)
+assign = do
+    left <- variable
+    ws
+    char '='
+    ws
+    right <- expression
+    return $ (left, right)
+
+statement :: Parser A.Statement
+statement = (try $ do
+    ws
+    (left, right) <- assign
+    ws
+    return $ A.Assign left right) <|> (ws >>= (\_ -> return A.EmptyStatement))
+
+
+statements :: Parser [A.Statement]
+statements = sepBy statement $ char ';'
 
 escape :: Parser String
 escape = do
@@ -109,8 +129,6 @@ literal = try intLiteral <|> stringLiteral'
 
 
 all' :: Parser A.Module
-all' = do ws
-          x <- expression
-          ws
+all' = do x <- statements
           eof
           return $ A.Module x

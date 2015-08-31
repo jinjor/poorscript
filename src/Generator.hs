@@ -2,6 +2,7 @@ module Generator(generate) where
 
 import Language.ECMAScript3.Syntax
 import Language.ECMAScript3.PrettyPrint
+import Data.List
 
 import qualified AST as A
 
@@ -9,10 +10,19 @@ generate :: A.Module -> String
 generate modul = show $ prettyPrint $ generate' modul
 
 
-generate' :: A.Module -> Expression ()
+generate' :: A.Module -> [Statement ()]
 generate' modul =
   case modul of
-    A.Module exp -> generateExpression exp
+    A.Module statements -> map generateStatement statements
+
+
+generateStatement :: A.Statement -> Statement ()
+generateStatement statement =
+  case statement of
+    A.Assign left right ->
+      VarDeclStmt () [VarDecl () (Id () left) $ Just (generateExpression right)]
+    A.EmptyStatement ->
+      EmptyStmt ()
 
 generateExpression :: A.Expression -> Expression ()
 generateExpression exp =
