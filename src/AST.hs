@@ -23,6 +23,7 @@ data Term
 data Factor
   = Expression Expression
   | Literal Literal
+  | Variable String
   deriving Show
 
 data Literal

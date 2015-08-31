@@ -33,6 +33,7 @@ generateFactor factor =
   case factor of
     A.Expression exp -> generateExpression exp
     A.Literal literal -> generateLiteral literal
+    A.Variable name -> VarRef () $ Id () name
 
 
 generateLiteral :: A.Literal -> Expression ()

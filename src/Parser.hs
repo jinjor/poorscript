@@ -25,7 +25,9 @@ expression = (try $
            op <- addop
            ws
            y <- expression
-           return $ A.Sum op x y) <|> (term' >>= return . A.Term)
+           return $ A.Sum op x y)
+        <|> (term' >>= return . A.Term)
+
 
 term' :: Parser A.Term
 term' = (try $
@@ -34,7 +36,8 @@ term' = (try $
            op <- mulop
            ws
            y <- term'
-           return $ A.Product op x y) <|> (factor' >>= return . A.Factor)
+           return $ A.Product op x y)
+        <|> (factor' >>= return . A.Factor)
 
 addop :: Parser A.AddOp
 addop = (try $
@@ -45,6 +48,7 @@ addop = (try $
     do
       _ <- char '-'
       return A.Minus)
+
 
 mulop :: Parser A.MulOp
 mulop = (try $
@@ -64,11 +68,45 @@ factor' = (try $
      x <- expression
      ws
      char ')'
-     return $ A.Expression x) <|> (literal >>= return . A.Literal)
+     return $ A.Expression x)
+  <|> (try $ literal >>= return . A.Literal)
+  <|> (variable >>= return . A.Variable)
+
+variable :: Parser String
+variable = do
+    head <- lower
+    tail <- many alphaNum
+    return $ head : tail
+
+escape :: Parser String
+escape = do
+    d <- char '\\'
+    c <- oneOf "\\\"0nrvtbf" -- all the characters which can be escaped
+    return [d, c]
+
+nonEscape :: Parser Char
+nonEscape = noneOf "\\\"\0\n\r\v\t\b\f"
+
+character :: Parser String
+character = fmap return nonEscape <|> escape
+
+stringLiteral' :: Parser A.Literal
+stringLiteral' = do
+    char '"'
+    strings <- many character
+    char '"'
+    return $ A.String $ concat strings
+
+
+intLiteral :: Parser A.Literal
+intLiteral =
+  do
+    x <- number
+    return (A.Integer x)
 
 literal :: Parser A.Literal
-literal = do x <- number
-             return (A.Integer x)
+literal = try intLiteral <|> stringLiteral'
+
 
 all' :: Parser A.Module
 all' = do ws
