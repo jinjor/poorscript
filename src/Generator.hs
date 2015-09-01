@@ -51,7 +51,12 @@ generateLiteral literal =
   case literal of
     A.String s -> StringLit () s
     A.Integer i -> IntLit () $ fromInteger i
+    A.List list -> CallExpr () (VarRef () $ Id () "$toList") [ArrayLit () (map generateExpression list)]
+    A.Object list -> CallExpr () (VarRef () $ Id () "$toObject") [ObjectLit () (map generateKeyValue list)]
 
+generateKeyValue :: (String, A.Expression) -> (Prop (), Expression ())
+generateKeyValue (key, value) =
+  (PropString () key, generateExpression value)
 
 toJSAddOp :: A.AddOp -> InfixOp
 toJSAddOp op =

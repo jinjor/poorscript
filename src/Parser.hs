@@ -124,8 +124,48 @@ intLiteral =
     x <- number
     return (A.Integer x)
 
+
+listLiteral :: Parser A.Literal
+listLiteral =
+  do
+    char '['
+    ws
+    x <- sepBy expression comma'
+    ws
+    char ']'
+    return (A.List x)
+
+objectLiteral :: Parser A.Literal
+objectLiteral =
+  do
+    char '{'
+    ws
+    x <- sepBy keyValue comma'
+    ws
+    char '}'
+    return (A.Object x)
+
+keyValue :: Parser (String, A.Expression)
+keyValue =
+  do
+    key <- many alphaNum
+    ws
+    char ':'
+    ws
+    value <- expression
+    return (key, value)
+
+comma' :: Parser ()
+comma' =
+  do
+    ws
+    x <- char ','
+    ws
+    return ()
+
+
 literal :: Parser A.Literal
-literal = try intLiteral <|> stringLiteral'
+literal = try intLiteral <|> try stringLiteral' <|> try listLiteral <|> objectLiteral
 
 
 all' :: Parser A.Module

@@ -29,6 +29,8 @@ data Factor
 data Literal
   = String String
   | Integer Integer
+  | List [Expression]
+  | Object [(String, Expression)]
   deriving Show
 
 type Variable = String
