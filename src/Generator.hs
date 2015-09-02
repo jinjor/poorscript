@@ -21,6 +21,7 @@ generateStatement statement =
   case statement of
     A.Assign left right ->
       VarDeclStmt () [VarDecl () (Id () left) $ Just (generateExpression right)]
+    A.Return right -> ReturnStmt () $ Just $ generateExpression right
     A.EmptyStatement ->
       EmptyStmt ()
 
@@ -41,6 +42,8 @@ generateTerm term =
 generateFactor :: A.Factor -> Expression ()
 generateFactor factor =
   case factor of
+    A.Function args statements ->
+      FuncExpr () Nothing (map (Id ()) args) (map generateStatement statements)
     A.Expression exp -> generateExpression exp
     A.Literal literal -> generateLiteral literal
     A.Variable name -> VarRef () $ Id () name

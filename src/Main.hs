@@ -6,8 +6,7 @@ import Generator
 
 main =
   do
-    let
-      s = " ;\n a = 1000 * { a : 5, ab : 1-2} - ([ 3, \"aaa\"] + \"bb\") * a0bc; "
+    s <- readFile "in.js"
     case parseAll s of
       Right x -> writeFile "out.js" $ generate x
       Left e -> print e

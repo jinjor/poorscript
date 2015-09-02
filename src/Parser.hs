@@ -62,13 +62,15 @@ mulop = (try $
 
 
 factor' :: Parser A.Factor
-factor' = (try $
-  do char '('
-     ws
-     x <- expression
-     ws
-     char ')'
-     return $ A.Expression x)
+factor' =
+  (try $ function >>= (\(args, statements) -> return $ A.Function args statements))
+  <|> (try $ do
+    char '('
+    ws
+    x <- expression
+    ws
+    char ')'
+    return $ A.Expression x)
   <|> (try $ literal >>= return . A.Literal)
   <|> (variable >>= return . A.Variable)
 
@@ -92,7 +94,15 @@ statement = (try $ do
     ws
     (left, right) <- assign
     ws
-    return $ A.Assign left right) <|> (ws >>= (\_ -> return A.EmptyStatement))
+    return $ A.Assign left right)
+  <|> (try $ do
+    ws
+    -- string "return"
+    -- ws
+    right <- expression
+    ws
+    return $ A.Return right)
+  <|> (ws >>= (\_ -> return A.EmptyStatement))
 
 
 statements :: Parser [A.Statement]
@@ -110,8 +120,25 @@ nonEscape = noneOf "\\\"\0\n\r\v\t\b\f"
 character :: Parser String
 character = fmap return nonEscape <|> escape
 
+function :: Parser ([A.Variable], [A.Statement])
+function =
+  do
+    char '('
+    ws
+    args <- sepBy variable comma'
+    ws
+    char ')'
+    ws
+    string "=>"
+    ws
+    char '{'
+    statements' <- statements
+    char '}'
+    return (args, statements')
+
 stringLiteral' :: Parser A.Literal
-stringLiteral' = do
+stringLiteral' =
+  do
     char '"'
     strings <- many character
     char '"'

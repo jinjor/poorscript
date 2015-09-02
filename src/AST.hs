@@ -24,6 +24,7 @@ data Factor
   = Expression Expression
   | Literal Literal
   | Variable Variable
+  | Function [Variable] [Statement]
   deriving Show
 
 data Literal
@@ -37,6 +38,7 @@ type Variable = String
 
 data Statement
   = Assign Variable Expression
+  | Return Expression
   | EmptyStatement
   deriving Show
 
