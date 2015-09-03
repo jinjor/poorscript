@@ -61,10 +61,44 @@ mulop = (try $
       return A.Div)
 
 
+
 factor' :: Parser A.Factor
 factor' =
   (try $ function >>= (\(args, statements) -> return $ A.Function args statements))
   <|> (try $ do
+    fac <- factor''
+    ws
+    tail <- dotTail
+    return $ buildPropertyAccess fac tail
+  )
+  <|> (do
+    x <- factor''
+    return x)
+
+buildPropertyAccess :: A.Factor -> DotTail -> A.Factor
+buildPropertyAccess fac Last = fac
+buildPropertyAccess fac (Init name tail) =
+    buildPropertyAccess (A.PropertyAccess fac name) tail
+
+
+dotTail :: Parser DotTail
+dotTail = (try $ do
+    char '.'
+    ws
+    name <- variable
+    ws
+    tail <- dotTail
+    return $ Init name tail)
+  <|>
+    return Last
+
+data DotTail
+  = Init String DotTail
+  | Last
+
+factor'' :: Parser A.Factor
+factor'' =
+  (try $ do
     char '('
     ws
     x <- expression
@@ -72,7 +106,9 @@ factor' =
     char ')'
     return $ A.Expression x)
   <|> (try $ literal >>= return . A.Literal)
-  <|> (variable >>= return . A.Variable)
+  <|> (try $ variable >>= return . A.Variable)
+
+
 
 variable :: Parser A.Variable
 variable = do
@@ -103,6 +139,8 @@ statement = (try $ do
     ws
     return $ A.Return right)
   <|> (ws >>= (\_ -> return A.EmptyStatement))
+
+
 
 
 statements :: Parser [A.Statement]
