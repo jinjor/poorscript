@@ -79,7 +79,8 @@ buildPropertyAccess :: A.Factor -> DotTail -> A.Factor
 buildPropertyAccess fac Last = fac
 buildPropertyAccess fac (Init name tail) =
     buildPropertyAccess (A.PropertyAccess fac name) tail
-
+buildPropertyAccess fac (CallArgs args tail) =
+    buildPropertyAccess (A.Call fac args) tail
 
 dotTail :: Parser DotTail
 dotTail = (try $ do
@@ -89,11 +90,22 @@ dotTail = (try $ do
     ws
     tail <- dotTail
     return $ Init name tail)
+  <|> (try $ do
+    char '('
+    ws
+    args <- expression `sepBy` comma'
+    ws
+    char ')'
+    ws
+    tail <- dotTail
+    return $ CallArgs args tail)
   <|>
     return Last
 
+
 data DotTail
   = Init String DotTail
+  | CallArgs [A.Expression] DotTail
   | Last
 
 factor'' :: Parser A.Factor

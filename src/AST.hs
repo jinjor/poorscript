@@ -26,7 +26,7 @@ data Factor
   | Variable Variable
   | Function [Variable] [Statement]
   | PropertyAccess Factor String
-  | Call Expression [Expression]
+  | Call Factor [Expression]
   deriving Show
 
 data Literal

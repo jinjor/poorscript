@@ -44,8 +44,10 @@ generateFactor factor =
   case factor of
     A.Function args statements ->
       FuncExpr () Nothing (map (Id ()) args) (map generateStatement statements)
-    A.PropertyAccess exp name ->
-      DotRef () (generateFactor exp) (Id () name)
+    A.PropertyAccess fac name ->
+      DotRef () (generateFactor fac) (Id () name)
+    A.Call fac args ->
+      CallExpr () (generateFactor fac) (map generateExpression args)
     A.Expression exp -> generateExpression exp
     A.Literal literal -> generateLiteral literal
     A.Variable name -> VarRef () $ Id () name
