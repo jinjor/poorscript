@@ -51,7 +51,12 @@ generateFactor factor =
     A.Expression exp -> generateExpression exp
     A.Literal literal -> generateLiteral literal
     A.Variable name -> VarRef () $ Id () name
-
+    A.If exp statements1 statements2 ->
+      CallExpr () (VarRef () $ Id () "$if")
+        [ generateExpression exp
+        , FuncExpr () Nothing [] (map generateStatement statements1)
+        , FuncExpr () Nothing [] (map generateStatement statements2)
+        ]
 
 generateLiteral :: A.Literal -> Expression ()
 generateLiteral literal =

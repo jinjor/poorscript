@@ -110,7 +110,8 @@ data DotTail
 
 factor'' :: Parser A.Factor
 factor'' =
-  (try $ do
+  (try $ ifExpr >>= (\(exp, _then, _else) -> return $ A.If exp _then _else))
+  <|> (try $ do
     char '('
     ws
     x <- expression
@@ -119,6 +120,27 @@ factor'' =
     return $ A.Expression x)
   <|> (try $ literal >>= return . A.Literal)
   <|> (try $ variable >>= return . A.Variable)
+
+ifExpr :: Parser (A.Expression, [A.Statement], [A.Statement])
+ifExpr = do
+    string "if"
+    ws
+    char '('
+    ws
+    exp <- expression
+    ws
+    char ')'
+    ws
+    statements1 <- statementsBlock
+    ws
+    string "else"
+    ws
+    statements2 <- statementsBlock
+    return (exp, statements1, statements2)
+
+
+
+
 
 
 
@@ -181,10 +203,16 @@ function =
     ws
     string "=>"
     ws
+    statements <- statementsBlock
+    return (args, statements)
+
+statementsBlock :: Parser [A.Statement]
+statementsBlock =
+  do
     char '{'
     statements' <- statements
     char '}'
-    return (args, statements')
+    return statements'
 
 stringLiteral' :: Parser A.Literal
 stringLiteral' =
