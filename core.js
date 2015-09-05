@@ -5,6 +5,9 @@ var $if = function(cond, f1, f2) {
     return f2();
   }
 };
+var $apply = function(f) {
+  return f();
+};
 var pipe = function(task1, next) {
   return function task(model, cb) {
     task1(model, function(model, something) {

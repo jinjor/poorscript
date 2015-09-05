@@ -16,6 +16,7 @@ data Expression
 
 data PrimaryExpression
   = Expression Expression
+  | BlockExpression [Statement]
   | Literal Literal
   | Variable Variable
   | Function [Variable] [Statement]

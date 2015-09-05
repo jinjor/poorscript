@@ -35,6 +35,9 @@ generateExpression exp =
 generatePrimaryExpression :: A.PrimaryExpression -> Expression ()
 generatePrimaryExpression pexp =
   case pexp of
+    A.BlockExpression statements ->
+      CallExpr () (VarRef () $ Id () "$apply")
+        [FuncExpr () Nothing [] (map generateStatement statements)]
     A.Function args statements ->
       FuncExpr () Nothing (map (Id ()) args) (map generateStatement statements)
     A.PropertyAccess pexp name ->

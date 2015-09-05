@@ -87,7 +87,7 @@ addop = (try $
     do
       _ <- char '+'
       return A.Plus)
-  <|> (try $
+  <|> (
     do
       _ <- char '-'
       return A.Minus)
@@ -98,7 +98,7 @@ mulop = (try $
     do
       _ <- char '*'
       return A.Mul)
-  <|> (try $
+  <|> (
     do
       _ <- char '/'
       return A.Div)
@@ -108,7 +108,7 @@ eqop = (try $
     do
       _ <- string "=="
       return A.Eq)
-  <|> (try $
+  <|> (
     do
       _ <- string "!="
       return A.NonEq)
@@ -127,11 +127,11 @@ primaryExpression =
     return x)
 
 buildPropertyAccess :: A.PrimaryExpression -> DotTail -> A.PrimaryExpression
-buildPropertyAccess pexp Last = pexp
-buildPropertyAccess pexp (Init name tail) =
-    buildPropertyAccess (A.PropertyAccess pexp name) tail
-buildPropertyAccess pexp (CallArgs args tail) =
-    trace ("here") $ buildPropertyAccess (A.Call pexp args) tail
+buildPropertyAccess pexp t =
+  case t of
+    Last -> pexp
+    Init name tail -> buildPropertyAccess (A.PropertyAccess pexp name) tail
+    CallArgs args tail -> buildPropertyAccess (A.Call pexp args) tail
 
 dotTail :: Parser DotTail
 dotTail = (try $ do
@@ -158,11 +158,13 @@ data DotTail
 primaryExpression' :: Parser A.PrimaryExpression
 primaryExpression' =
   (try $ ifExpr >>= (\(exp, _then, _else) -> return $ A.If exp _then _else))
+  <|> (try $ statementsBlock >>= return . A.BlockExpression)
   <|> (try $ do
     x <- parens' $ expression
+    -- notFollowedBy $ padded $ string "=>"
     return $ A.Expression x)
   <|> (try $ literal >>= return . A.Literal)
-  <|> (try $ variable >>= return . A.Variable)
+  <|> (variable >>= return . A.Variable)
 
 ifExpr :: Parser (A.Expression, [A.Statement], [A.Statement])
 ifExpr = do
@@ -198,15 +200,9 @@ statement = (try $ do
     (left, right) <- padded assign
     return $ A.Assign left right)
   <|> (try $ do
-    ws
-    -- string "return"
-    -- ws
-    right <- expression
-    ws
-    return $ A.Return right)
+    exp <- padded expression
+    return $ A.Return exp)
   <|> (ws >>= (\_ -> return A.EmptyStatement))
-
-
 
 
 statements :: Parser [A.Statement]
@@ -279,7 +275,10 @@ comma' =
 
 
 literal :: Parser A.Literal
-literal = try intLiteral <|> try stringLiteral' <|> try listLiteral <|> objectLiteral
+literal = try intLiteral
+  <|> try stringLiteral'
+  <|> try listLiteral
+  <|> objectLiteral
 
 
 all' :: Parser A.Module

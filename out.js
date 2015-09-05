@@ -1,11 +1,11 @@
 var startApp = function (view) {
-   return function (e,state) {
-      return function (e,state) {
-         return function (e,state) {
-            return a(b(c()));
-         };
-      };
-   };
+   return $apply(function () {
+      return $apply(function () {
+         return $apply(function () {
+            return b(c());
+         });
+      });
+   });
 };
 var main = function (e,state) {
    var a = console.log(e);

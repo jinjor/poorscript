@@ -1,12 +1,6 @@
 
 startApp = (view) => {
-  (e, state) => {
-    (e, state) => {
-      (e, state) => {
-        a(b(c()))
-      }
-    }
-  }
+  {{{b(c())}}}
 };
 
 main = (e, state) => {
