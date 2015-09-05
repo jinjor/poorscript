@@ -2,8 +2,12 @@
 
 main = (e, state) => {
   if(e) {
-    render(state.a);
+    render(html(state));
   } else {
-    pipe(update("a", "Hello!"), action("render"));
+    pipe(update("a", "Hello!"), () => {action("update")});
   }
+};
+
+html = (state) => {
+  state.a
 };

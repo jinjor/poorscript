@@ -5,30 +5,23 @@ var $if = function(cond, f1, f2) {
     return f2();
   }
 };
-var pipe = function(task1, task2) {
+var pipe = function(task1, next) {
   return function task(model, cb) {
-    task1(model, function(model) {
-      setTimeout(function() {
-        task2(model, cb);
-      });
+    task1(model, function(model, something) {
+      var task2 = next(something);
+      setTimeout(task2.bind(null, model, cb));
     });
   };
 };
 var render = function(html) {
   return function task(model, cb) {
     document.body.innerHTML = html;
-    setTimeout(function() {
-      cb(model);
-    });
+    cb(model);
   }
 };
 var action = function(e) {
   return function task(model, cb) {
-    setTimeout(function() {
-      run(e, model, function(model) {
-        cb(model);
-      });
-    });
+    run(e, model, cb.bind(null, model));
   }
 };
 var update = function(property, value) {
@@ -45,8 +38,6 @@ var run = function(e, model, cb) {
   cb = cb || $noop;
   var task = main(e, model);
   cb(model);
-  setTimeout(function() {
-    task(model, $noop);
-  });
+  setTimeout(task.bind(null, model, $noop));
 
 };
