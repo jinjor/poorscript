@@ -2,7 +2,7 @@ var startApp = function (view) {
    return $apply(function () {
       return $apply(function () {
          return $apply(function () {
-            return b(c());
+            return b(c(d(e())));
          });
       });
    });
@@ -26,7 +26,7 @@ var main = function (e,state) {
    ;
 };
 var view = function (state) {
-   return "<h1>" + (state.a + "</h1>");
+   return "<h1>" + state.a + "</h1>";
    ;
 };
 ;

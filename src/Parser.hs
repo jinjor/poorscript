@@ -51,80 +51,59 @@ brackets' =
 
 
 expression :: Parser A.Expression
-expression = (try $
-        do x <- term'
-           ws
-           op <- addop
-           ws
-           y <- expression
-           return $ A.BinaryExpression op x y)
-        <|> term'
+expression = chainl1 term' $ padded addop
 
 
 term' :: Parser A.Expression
-term' = (try $
-        do x <- factor
-           ws
-           op <- mulop
-           ws
-           y <- term'
-           return $ A.BinaryExpression op x y)
-        <|> factor
+term' = chainl1 factor $ padded mulop
 
 factor :: Parser A.Expression
-factor = (try $
-        do x <- primaryExpression
-           ws
-           op <- eqop
-           ws
-           y <- factor
-           return $ A.BinaryExpression op (A.PrimaryExpression x) y)
-        <|> (primaryExpression >>= return . A.PrimaryExpression)
+factor = chainl1 primaryExpression $ padded eqop
 
 
-addop :: Parser A.BinOp
+addop :: Parser (A.Expression -> A.Expression -> A.Expression)
 addop = (try $
     do
-      _ <- char '+'
-      return A.Plus)
+      char '+'
+      return (\a b-> A.BinaryExpression A.Plus a b))
   <|> (
     do
-      _ <- char '-'
-      return A.Minus)
+      char '-'
+      return (\a b-> A.BinaryExpression A.Minus a b))
 
 
-mulop :: Parser A.BinOp
+mulop :: Parser (A.Expression -> A.Expression -> A.Expression)
 mulop = (try $
     do
-      _ <- char '*'
-      return A.Mul)
+      char '*'
+      return (\a b-> A.BinaryExpression A.Mul a b))
   <|> (
     do
-      _ <- char '/'
-      return A.Div)
+      char '/'
+      return (\a b-> A.BinaryExpression A.Div a b))
 
-eqop :: Parser A.BinOp
+eqop :: Parser (A.Expression -> A.Expression -> A.Expression)
 eqop = (try $
     do
       _ <- string "=="
-      return A.Eq)
+      return (\a b-> A.BinaryExpression A.Eq a b))
   <|> (
     do
       _ <- string "!="
-      return A.NonEq)
+      return (\a b-> A.BinaryExpression A.NonEq a b))
 
-primaryExpression :: Parser A.PrimaryExpression
+primaryExpression :: Parser A.Expression
 primaryExpression =
-  (try $ function >>= (\(args, statements) -> return $ A.Function args statements))
+  (try $ function >>= (\(args, statements) -> return $ A.PrimaryExpression $ A.Function args statements))
   <|> (try $ do
     fac <- primaryExpression'
     ws
     tail <- dotTail
-    return $ buildPropertyAccess fac tail
+    return $ A.PrimaryExpression $ buildPropertyAccess fac tail
   )
   <|> (do
     x <- primaryExpression'
-    return x)
+    return $ A.PrimaryExpression x)
 
 buildPropertyAccess :: A.PrimaryExpression -> DotTail -> A.PrimaryExpression
 buildPropertyAccess pexp t =
