@@ -1,18 +1,21 @@
 
-startApp = (view) => {
-  {{{b(c(d(e())))}}}
-};
-
-main = (e, state) => {
-  a = console.log(e);
-  ret = if(e == "afterUpdate") {
-    render(view(state));
-  } else {
-    pipe(update("a", "Hello!"), () => {action("afterUpdate")});
+startApp = (init, upd, view) => {
+  (e, state) => {
+    a = console.log(e);
+    if(e == "afterUpdate") {
+      render(view(state.model));
+    } else {
+      pipe(update("model", init), () => {action("afterUpdate")});
+    };
   };
-  ret;
 };
 
-view = (state) => {
-  "<h1>" + state.a + "</h1>";
+init = "Hello";
+upd = (e, model) => {
+  model
 };
+
+view = (model) => {
+  "<h1>" + model + "</h1>";
+};
+main = startApp(init, upd, view);

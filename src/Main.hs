@@ -8,7 +8,7 @@ main =
   do
     s <- readFile "in.js"
     let result = parseAll s
-    print result
+    -- print result
     case result of
       Right x -> writeFile "out.js" $ generate x
       Left e -> print e

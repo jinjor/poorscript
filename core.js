@@ -29,7 +29,6 @@ var action = function(e) {
 };
 var update = function(property, value) {
   return function task(model, cb) {
-    console.log(property, value);
     model = JSON.parse(JSON.stringify(model));
     model[property] = value;
     cb(model);
