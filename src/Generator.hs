@@ -42,12 +42,20 @@ generateTerm term =
 generateFactor :: A.Factor -> Expression ()
 generateFactor factor =
   case factor of
+    A.BinEq op pexp factor ->
+      InfixExpr () (toJSEqOp op) (generatePrimaryExpression pexp) (generateFactor factor)
+    A.PrimaryExpression pexp -> generatePrimaryExpression pexp
+
+
+generatePrimaryExpression :: A.PrimaryExpression -> Expression ()
+generatePrimaryExpression pexp =
+  case pexp of
     A.Function args statements ->
       FuncExpr () Nothing (map (Id ()) args) (map generateStatement statements)
-    A.PropertyAccess fac name ->
-      DotRef () (generateFactor fac) (Id () name)
-    A.Call fac args ->
-      CallExpr () (generateFactor fac) (map generateExpression args)
+    A.PropertyAccess pexp name ->
+      DotRef () (generatePrimaryExpression pexp) (Id () name)
+    A.Call pexp args ->
+      CallExpr () (generatePrimaryExpression pexp) (map generateExpression args)
     A.Expression exp -> generateExpression exp
     A.Literal literal -> generateLiteral literal
     A.Variable name -> VarRef () $ Id () name
@@ -83,3 +91,9 @@ toJSMulOp op =
   case op of
     A.Mul -> OpMul
     A.Div -> OpDiv
+
+toJSEqOp :: A.EqOp -> InfixOp
+toJSEqOp op =
+  case op of
+    A.Eq -> OpStrictEq
+    A.NonEq -> OpStrictNEq

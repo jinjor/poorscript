@@ -7,7 +7,9 @@ import Generator
 main =
   do
     s <- readFile "in.js"
-    case parseAll s of
+    let result = parseAll s
+    print result
+    case result of
       Right x -> writeFile "out.js" $ generate x
       Left e -> print e
 

@@ -1,13 +1,24 @@
 
-
-main = (e, state) => {
-  if(e) {
-    render(html(state));
-  } else {
-    pipe(update("a", "Hello!"), () => {action("update")});
+startApp = (view) => {
+  (e, state) => {
+    (e, state) => {
+      (e, state) => {
+        a(b(c()))
+      }
+    }
   }
 };
 
-html = (state) => {
-  state.a
+main = (e, state) => {
+  a = console.log(e);
+  ret = if(e == "afterUpdate") {
+    render(view(state));
+  } else {
+    pipe(update("a", "Hello!"), () => {action("afterUpdate")});
+  };
+  ret;
+};
+
+view = (state) => {
+  "<h1>" + state.a + "</h1>";
 };

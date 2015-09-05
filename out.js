@@ -1,19 +1,32 @@
+var startApp = function (view) {
+   return function (e,state) {
+      return function (e,state) {
+         return function (e,state) {
+            return a(b(c()));
+         };
+      };
+   };
+};
 var main = function (e,state) {
-   return $if(e,
+   var a = console.log(e);
+   var ret = $if(e === "afterUpdate",
    function () {
-      return render(html(state));
+      return render(view(state));
       ;
    },
    function () {
       return pipe(update("a",
       "Hello!"),
       function () {
-         return action("update");
+         return action("afterUpdate");
       });
       ;
    });
+   return ret;
+   ;
 };
-var html = function (state) {
-   return state.a;
+var view = function (state) {
+   return "<h1>" + (state.a + "</h1>");
+   ;
 };
 ;

@@ -10,6 +10,11 @@ data MulOp
   | Div
   deriving Show
 
+data EqOp
+  = Eq
+  | NonEq
+  deriving Show
+
 data Expression
   = Sum AddOp Term Expression
   | Term Term
@@ -21,12 +26,17 @@ data Term
   deriving Show
 
 data Factor
+  = BinEq EqOp PrimaryExpression Factor
+  | PrimaryExpression PrimaryExpression
+  deriving Show
+
+data PrimaryExpression
   = Expression Expression
   | Literal Literal
   | Variable Variable
   | Function [Variable] [Statement]
-  | PropertyAccess Factor String
-  | Call Factor [Expression]
+  | PropertyAccess PrimaryExpression String
+  | Call PrimaryExpression [Expression]
   | If Expression [Statement] [Statement]
   deriving Show
 

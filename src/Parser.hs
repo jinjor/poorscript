@@ -4,6 +4,7 @@ import Text.Parsec
 import Text.Parsec.Expr
 import Text.Parsec.Token
 import Text.Parsec.Language
+import Debug.Trace (trace)
 
 import qualified AST as A
 
@@ -16,7 +17,38 @@ number :: Parser Integer
 number = natural lexer
 
 ws :: Parser ()
-ws = whiteSpace lexer
+-- ws = whiteSpace lexer
+ws = Text.Parsec.spaces
+
+padded :: Parser a -> Parser a
+padded p =
+  do  ws
+      out <- p
+      ws
+      return out
+
+surround :: Char -> Char -> String -> Parser a -> Parser a
+surround a z name p = do
+  char a
+  v <- padded p
+  char z <?> unwords ["a closing", name, show z]
+  return v
+
+braces' :: Parser a -> Parser a
+braces' =
+  surround '[' ']' "brace"
+
+
+parens' :: Parser a -> Parser a
+parens' =
+  surround '(' ')' "paren"
+
+
+brackets' :: Parser a -> Parser a
+brackets' =
+  surround '{' '}' "bracket"
+
+
 
 expression :: Parser A.Expression
 expression = (try $
@@ -31,13 +63,24 @@ expression = (try $
 
 term' :: Parser A.Term
 term' = (try $
-        do x <- factor'
+        do x <- factor
            ws
            op <- mulop
            ws
            y <- term'
            return $ A.Product op x y)
-        <|> (factor' >>= return . A.Factor)
+        <|> (factor >>= return . A.Factor)
+
+factor :: Parser A.Factor
+factor = (try $
+        do x <- primaryExpression
+           ws
+           op <- eqop
+           ws
+           y <- factor
+           return $ A.BinEq op x y)
+        <|> (primaryExpression >>= return . A.PrimaryExpression)
+
 
 addop :: Parser A.AddOp
 addop = (try $
@@ -60,27 +103,35 @@ mulop = (try $
       _ <- char '/'
       return A.Div)
 
+eqop :: Parser A.EqOp
+eqop = (try $
+    do
+      _ <- string "=="
+      return A.Eq)
+  <|> (try $
+    do
+      _ <- string "!="
+      return A.NonEq)
 
-
-factor' :: Parser A.Factor
-factor' =
+primaryExpression :: Parser A.PrimaryExpression
+primaryExpression =
   (try $ function >>= (\(args, statements) -> return $ A.Function args statements))
   <|> (try $ do
-    fac <- factor''
+    fac <- primaryExpression'
     ws
     tail <- dotTail
     return $ buildPropertyAccess fac tail
   )
   <|> (do
-    x <- factor''
+    x <- primaryExpression'
     return x)
 
-buildPropertyAccess :: A.Factor -> DotTail -> A.Factor
-buildPropertyAccess fac Last = fac
-buildPropertyAccess fac (Init name tail) =
-    buildPropertyAccess (A.PropertyAccess fac name) tail
-buildPropertyAccess fac (CallArgs args tail) =
-    buildPropertyAccess (A.Call fac args) tail
+buildPropertyAccess :: A.PrimaryExpression -> DotTail -> A.PrimaryExpression
+buildPropertyAccess pexp Last = pexp
+buildPropertyAccess pexp (Init name tail) =
+    buildPropertyAccess (A.PropertyAccess pexp name) tail
+buildPropertyAccess pexp (CallArgs args tail) =
+    trace ("here") $ buildPropertyAccess (A.Call pexp args) tail
 
 dotTail :: Parser DotTail
 dotTail = (try $ do
@@ -91,11 +142,7 @@ dotTail = (try $ do
     tail <- dotTail
     return $ Init name tail)
   <|> (try $ do
-    char '('
-    ws
-    args <- expression `sepBy` comma'
-    ws
-    char ')'
+    args <- parens' $ expression `sepBy` comma'
     ws
     tail <- dotTail
     return $ CallArgs args tail)
@@ -108,15 +155,11 @@ data DotTail
   | CallArgs [A.Expression] DotTail
   | Last
 
-factor'' :: Parser A.Factor
-factor'' =
+primaryExpression' :: Parser A.PrimaryExpression
+primaryExpression' =
   (try $ ifExpr >>= (\(exp, _then, _else) -> return $ A.If exp _then _else))
   <|> (try $ do
-    char '('
-    ws
-    x <- expression
-    ws
-    char ')'
+    x <- parens' $ expression
     return $ A.Expression x)
   <|> (try $ literal >>= return . A.Literal)
   <|> (try $ variable >>= return . A.Variable)
@@ -125,11 +168,7 @@ ifExpr :: Parser (A.Expression, [A.Statement], [A.Statement])
 ifExpr = do
     string "if"
     ws
-    char '('
-    ws
-    exp <- expression
-    ws
-    char ')'
+    exp <- parens' $ expression
     ws
     statements1 <- statementsBlock
     ws
@@ -137,11 +176,6 @@ ifExpr = do
     ws
     statements2 <- statementsBlock
     return (exp, statements1, statements2)
-
-
-
-
-
 
 
 variable :: Parser A.Variable
@@ -161,9 +195,7 @@ assign = do
 
 statement :: Parser A.Statement
 statement = (try $ do
-    ws
-    (left, right) <- assign
-    ws
+    (left, right) <- padded assign
     return $ A.Assign left right)
   <|> (try $ do
     ws
@@ -195,24 +227,13 @@ character = fmap return nonEscape <|> escape
 function :: Parser ([A.Variable], [A.Statement])
 function =
   do
-    char '('
-    ws
-    args <- sepBy variable comma'
-    ws
-    char ')'
-    ws
-    string "=>"
-    ws
+    args <- parens' $ sepBy variable comma'
+    padded $ string "=>"
     statements <- statementsBlock
     return (args, statements)
 
 statementsBlock :: Parser [A.Statement]
-statementsBlock =
-  do
-    char '{'
-    statements' <- statements
-    char '}'
-    return statements'
+statementsBlock = brackets' statements
 
 stringLiteral' :: Parser A.Literal
 stringLiteral' =
@@ -233,39 +254,27 @@ intLiteral =
 listLiteral :: Parser A.Literal
 listLiteral =
   do
-    char '['
-    ws
-    x <- sepBy expression comma'
-    ws
-    char ']'
+    x <- braces' $ sepBy expression comma'
     return (A.List x)
 
 objectLiteral :: Parser A.Literal
 objectLiteral =
   do
-    char '{'
-    ws
-    x <- sepBy keyValue comma'
-    ws
-    char '}'
+    x <- brackets' $ sepBy keyValue comma'
     return (A.Object x)
 
 keyValue :: Parser (String, A.Expression)
 keyValue =
   do
     key <- many alphaNum
-    ws
-    char ':'
-    ws
+    padded $ char ':'
     value <- expression
     return (key, value)
 
 comma' :: Parser ()
 comma' =
   do
-    ws
-    x <- char ','
-    ws
+    x <- padded $ char ','
     return ()
 
 
