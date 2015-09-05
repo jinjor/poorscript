@@ -28,24 +28,9 @@ generateStatement statement =
 generateExpression :: A.Expression -> Expression ()
 generateExpression exp =
   case exp of
-    A.Sum op term exp ->
-      InfixExpr () (toJSAddOp op) (generateTerm term) (generateExpression exp)
-    A.Term term -> generateTerm term
-
-generateTerm :: A.Term -> Expression ()
-generateTerm term =
-  case term of
-    A.Product op factor term ->
-      InfixExpr () (toJSMulOp op) (generateFactor factor) (generateTerm term)
-    A.Factor factor -> generateFactor factor
-
-generateFactor :: A.Factor -> Expression ()
-generateFactor factor =
-  case factor of
-    A.BinEq op pexp factor ->
-      InfixExpr () (toJSEqOp op) (generatePrimaryExpression pexp) (generateFactor factor)
-    A.PrimaryExpression pexp -> generatePrimaryExpression pexp
-
+    A.BinaryExpression op exp1 exp2 ->
+      InfixExpr () (toJSOp op) (generateExpression exp1) (generateExpression exp2)
+    A.PrimaryExpression exp -> generatePrimaryExpression exp
 
 generatePrimaryExpression :: A.PrimaryExpression -> Expression ()
 generatePrimaryExpression pexp =
@@ -80,20 +65,12 @@ generateKeyValue :: (String, A.Expression) -> (Prop (), Expression ())
 generateKeyValue (key, value) =
   (PropString () key, generateExpression value)
 
-toJSAddOp :: A.AddOp -> InfixOp
-toJSAddOp op =
+toJSOp :: A.BinOp -> InfixOp
+toJSOp op =
   case op of
     A.Plus -> OpAdd
     A.Minus -> OpSub
-
-toJSMulOp :: A.MulOp -> InfixOp
-toJSMulOp op =
-  case op of
     A.Mul -> OpMul
     A.Div -> OpDiv
-
-toJSEqOp :: A.EqOp -> InfixOp
-toJSEqOp op =
-  case op of
     A.Eq -> OpStrictEq
     A.NonEq -> OpStrictNEq

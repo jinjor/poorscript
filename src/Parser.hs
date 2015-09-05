@@ -57,32 +57,32 @@ expression = (try $
            op <- addop
            ws
            y <- expression
-           return $ A.Sum op x y)
-        <|> (term' >>= return . A.Term)
+           return $ A.BinaryExpression op x y)
+        <|> term'
 
 
-term' :: Parser A.Term
+term' :: Parser A.Expression
 term' = (try $
         do x <- factor
            ws
            op <- mulop
            ws
            y <- term'
-           return $ A.Product op x y)
-        <|> (factor >>= return . A.Factor)
+           return $ A.BinaryExpression op x y)
+        <|> factor
 
-factor :: Parser A.Factor
+factor :: Parser A.Expression
 factor = (try $
         do x <- primaryExpression
            ws
            op <- eqop
            ws
            y <- factor
-           return $ A.BinEq op x y)
+           return $ A.BinaryExpression op (A.PrimaryExpression x) y)
         <|> (primaryExpression >>= return . A.PrimaryExpression)
 
 
-addop :: Parser A.AddOp
+addop :: Parser A.BinOp
 addop = (try $
     do
       _ <- char '+'
@@ -93,7 +93,7 @@ addop = (try $
       return A.Minus)
 
 
-mulop :: Parser A.MulOp
+mulop :: Parser A.BinOp
 mulop = (try $
     do
       _ <- char '*'
@@ -103,7 +103,7 @@ mulop = (try $
       _ <- char '/'
       return A.Div)
 
-eqop :: Parser A.EqOp
+eqop :: Parser A.BinOp
 eqop = (try $
     do
       _ <- string "=="

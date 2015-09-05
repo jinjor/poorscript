@@ -1,32 +1,16 @@
 module AST where
 
-data AddOp
+data BinOp
   = Plus
   | Minus
-  deriving Show
-
-data MulOp
-  = Mul
+  | Mul
   | Div
-  deriving Show
-
-data EqOp
-  = Eq
+  | Eq
   | NonEq
   deriving Show
 
 data Expression
-  = Sum AddOp Term Expression
-  | Term Term
-  deriving Show
-
-data Term
-  = Product MulOp Factor Term
-  | Factor Factor
-  deriving Show
-
-data Factor
-  = BinEq EqOp PrimaryExpression Factor
+  = BinaryExpression BinOp Expression Expression
   | PrimaryExpression PrimaryExpression
   deriving Show
 
