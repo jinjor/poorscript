@@ -20,12 +20,14 @@ view) {
    };
    ;
 };
-var init = {"model": "Hello"};
+var init = {"model": {"title": "Hello"}};
 var upd = function (e,model) {
+   var model = $extend(model,
+   {"title": e.data});
    return model;
 };
 var view = function (model) {
-   return "<h1>" + model + "</h1>";
+   return "<h1>" + model.title + "</h1>";
    ;
 };
 var main = startApp(init,

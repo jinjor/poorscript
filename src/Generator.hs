@@ -28,6 +28,8 @@ generateStatement statement =
 generateExpression :: A.Expression -> Expression ()
 generateExpression exp =
   case exp of
+    A.BinaryExpression A.Extend exp1 exp2 ->
+      CallExpr () (VarRef () $ Id () "$extend") [(generateExpression exp1), (generateExpression exp2)]
     A.BinaryExpression op exp1 exp2 ->
       InfixExpr () (toJSOp op) (generateExpression exp1) (generateExpression exp2)
     A.PrimaryExpression exp -> generatePrimaryExpression exp

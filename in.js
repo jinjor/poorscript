@@ -11,13 +11,18 @@ startApp = (init, upd, view) => {
 };
 
 init = {
-  model: "Hello"
+  model : {
+    title: "Hello"
+  }
 };
 upd = (e, model) => {
+  model = model # {
+    title: e.data
+  };
   model
 };
 
 view = (model) => {
-  "<h1>" + model + "</h1>";
+  "<h1>" + model.title + "</h1>";
 };
 main = startApp(init, upd, view);

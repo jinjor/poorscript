@@ -51,14 +51,24 @@ brackets' =
 
 
 expression :: Parser A.Expression
-expression = chainl1 term' $ padded addop
+expression = chainl1 extension $ padded extendop
 
+extension :: Parser A.Expression
+extension = chainl1 term' $ padded addop
 
 term' :: Parser A.Expression
 term' = chainl1 factor $ padded mulop
 
 factor :: Parser A.Expression
 factor = chainl1 primaryExpression $ padded eqop
+
+
+
+extendop :: Parser (A.Expression -> A.Expression -> A.Expression)
+extendop = (try $
+    do
+      char '#'
+      return (\a b-> A.BinaryExpression A.Extend a b))
 
 
 addop :: Parser (A.Expression -> A.Expression -> A.Expression)
@@ -96,42 +106,43 @@ primaryExpression :: Parser A.Expression
 primaryExpression =
   (try $ function >>= (\(args, statements) -> return $ A.PrimaryExpression $ A.Function args statements))
   <|> (try $ do
-    fac <- primaryExpression'
+    exp <- primaryExpression'
     ws
-    tail <- dotTail
-    return $ A.PrimaryExpression $ buildPropertyAccess fac tail
+    tail <- expTail
+    return $ A.PrimaryExpression $ buildPropertyAccess exp tail
   )
   <|> (do
     x <- primaryExpression'
     return $ A.PrimaryExpression x)
 
-buildPropertyAccess :: A.PrimaryExpression -> DotTail -> A.PrimaryExpression
+buildPropertyAccess :: A.PrimaryExpression -> ExpTail -> A.PrimaryExpression
 buildPropertyAccess pexp t =
   case t of
     Last -> pexp
-    Init name tail -> buildPropertyAccess (A.PropertyAccess pexp name) tail
-    CallArgs args tail -> buildPropertyAccess (A.Call pexp args) tail
+    Dot name tail ->
+      buildPropertyAccess (A.PropertyAccess pexp name) tail
+    CallArgs args tail ->
+      buildPropertyAccess (A.Call pexp args) tail
 
-dotTail :: Parser DotTail
-dotTail = (try $ do
+expTail :: Parser ExpTail
+expTail = (try $ do
     char '.'
     ws
     name <- variable
     ws
-    tail <- dotTail
-    return $ Init name tail)
+    tail <- expTail
+    return $ Dot name tail)
   <|> (try $ do
     args <- parens' $ expression `sepBy` comma'
     ws
-    tail <- dotTail
+    tail <- expTail
     return $ CallArgs args tail)
   <|>
     return Last
 
-
-data DotTail
-  = Init String DotTail
-  | CallArgs [A.Expression] DotTail
+data ExpTail
+  = Dot String ExpTail
+  | CallArgs [A.Expression] ExpTail
   | Last
 
 primaryExpression' :: Parser A.PrimaryExpression

@@ -1,7 +1,8 @@
 module AST where
 
 data BinOp
-  = Plus
+  = Extend
+  | Plus
   | Minus
   | Mul
   | Div
