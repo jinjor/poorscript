@@ -2,20 +2,27 @@ var startApp = function (init,
 upd,
 view) {
    return function (e,state) {
-      var a = console.log(e);
+      var a = $if(e,
+      console.log(e),
+      0);
       return $if(e === "afterUpdate",
-      function () {
+      $apply(function () {
          return render(view(state.model));
          ;
-      },
-      function () {
+      }),
+      $if(e === "something",
+      $apply(function () {
+         return render(view(state.model));
+         ;
+      }),
+      $apply(function () {
          return pipe(update("model",
          init.model),
          function () {
             return action("afterUpdate");
          });
          ;
-      });
+      })));
       ;
    };
    ;

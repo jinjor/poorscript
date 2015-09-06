@@ -156,18 +156,18 @@ primaryExpression' =
   <|> (try $ literal >>= return . A.Literal)
   <|> (variable >>= return . A.Variable)
 
-ifExpr :: Parser (A.Expression, [A.Statement], [A.Statement])
+ifExpr :: Parser (A.Expression, A.Expression, A.Expression)
 ifExpr = do
     string "if"
     ws
     exp <- parens' $ expression
     ws
-    statements1 <- statementsBlock
+    exp1 <- expression
     ws
     string "else"
     ws
-    statements2 <- statementsBlock
-    return (exp, statements1, statements2)
+    exp2 <- expression
+    return (exp, exp1, exp2)
 
 
 variable :: Parser A.Variable

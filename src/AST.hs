@@ -23,7 +23,7 @@ data PrimaryExpression
   | Function [Variable] [Statement]
   | PropertyAccess PrimaryExpression String
   | Call PrimaryExpression [Expression]
-  | If Expression [Statement] [Statement]
+  | If Expression Expression Expression
   deriving Show
 
 data Literal
