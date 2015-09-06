@@ -8,6 +8,21 @@ var $if = function(cond, f1, f2) {
 var $apply = function(f) {
   return f();
 };
+var http = {
+  get: function(url) {
+    return function task(model, cb) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'json';
+      xhr.onload = function(e) {
+        if (this.status == 200) {
+          cb(model, this.response);
+        }
+      };
+      xhr.send();
+    };
+  }
+};
 var pipe = function(task1, next) {
   return function task(model, cb) {
     task1(model, function(model, something) {
@@ -24,7 +39,8 @@ var render = function(html) {
 };
 var action = function(e) {
   return function task(model, cb) {
-    run(e, model, cb.bind(null, model));
+    // run(e, model, cb.bind(null, model));
+    run(e, model, cb.bind(null, model, $noop))
   }
 };
 var update = function(property, value) {
@@ -39,7 +55,7 @@ var run = function(e, model, cb) {
   model = model || {}
   cb = cb || $noop;
   var task = main(e, model);
-  cb(model);
+  cb(model, $noop);
   setTimeout(task.bind(null, model, $noop));
 
 };

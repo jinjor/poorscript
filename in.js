@@ -5,12 +5,14 @@ startApp = (init, upd, view) => {
     if(e == "afterUpdate") {
       render(view(state.model));
     } else {
-      pipe(update("model", init), () => {action("afterUpdate")});
+      pipe(update("model", init.model), () => {action("afterUpdate")});
     };
   };
 };
 
-init = "Hello";
+init = {
+  model: "Hello"
+};
 upd = (e, model) => {
   model
 };

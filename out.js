@@ -3,25 +3,24 @@ upd,
 view) {
    return function (e,state) {
       var a = console.log(e);
-      var ret = $if(e === "afterUpdate",
+      return $if(e === "afterUpdate",
       function () {
          return render(view(state.model));
          ;
       },
       function () {
          return pipe(update("model",
-         init),
+         init.model),
          function () {
             return action("afterUpdate");
          });
          ;
       });
-      return ret;
       ;
    };
    ;
 };
-var init = "Hello";
+var init = {"model": "Hello"};
 var upd = function (e,model) {
    return model;
 };
