@@ -1,18 +1,25 @@
 startApp = (init, upd, view) => {
-  (e, state) => {
-    a =
-      if (e) console.log(e)
-      else 0;
+  loop = (e, state) => {
+    a = console.log(e);
     if (e == "afterUpdate") {
-      render(view(state.model));
-    } else if (e == "something") {
+      () => {
+        loop("afterUpdate2", state # {
+          model: {
+            title: 1
+          }
+        });
+      };
+    } else if (e == "afterUpdate2") {
       render(view(state.model));
     } else {
-      pipe(update("model", init.model), () => {
-        action("afterUpdate")
-      });
+      () => {
+        loop("afterUpdate", state # {
+          model: init.model
+        });
+      };
     };
   };
+  loop(0, {a:0});
 };
 
 init = {

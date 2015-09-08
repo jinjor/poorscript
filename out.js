@@ -1,30 +1,45 @@
 var startApp = function (init,
 upd,
 view) {
-   return function (e,state) {
-      var a = $if(e,
-      console.log(e),
-      0);
+   var loop = function (e,
+   state) {
+      var a = console.log(e);
       return $if(e === "afterUpdate",
-      $apply(function () {
-         return render(view(state.model));
-         ;
-      }),
-      $if(e === "something",
-      $apply(function () {
-         return render(view(state.model));
-         ;
-      }),
-      $apply(function () {
-         return pipe(update("model",
-         init.model),
-         function () {
-            return action("afterUpdate");
+      function () {
+         return $apply(function () {
+            return function () {
+               return loop("afterUpdate2",
+               $extend(state,
+               {"model": {"title": 1}}));
+               ;
+            };
+            ;
          });
-         ;
-      })));
+      },
+      function () {
+         return $if(e === "afterUpdate2",
+         function () {
+            return $apply(function () {
+               return render(view(state.model));
+               ;
+            });
+         },
+         function () {
+            return $apply(function () {
+               return function () {
+                  return loop("afterUpdate",
+                  $extend(state,
+                  {"model": init.model}));
+                  ;
+               };
+               ;
+            });
+         });
+      });
       ;
    };
+   return loop(0,
+   $apply(function () {    ;}));
    ;
 };
 var init = {"model": {"title": "Hello"}};

@@ -40,6 +40,7 @@ generatePrimaryExpression pexp =
     A.BlockExpression statements ->
       CallExpr () (VarRef () $ Id () "$apply")
         [FuncExpr () Nothing [] (map generateStatement statements)]
+      -- FuncExpr () Nothing [] (map generateStatement statements)
     A.Function args statements ->
       FuncExpr () Nothing (map (Id ()) args) (map generateStatement statements)
     A.PropertyAccess pexp name ->
@@ -52,8 +53,8 @@ generatePrimaryExpression pexp =
     A.If exp exp1 exp2 ->
       CallExpr () (VarRef () $ Id () "$if")
         [ generateExpression exp
-        , generateExpression exp1
-        , generateExpression exp2
+        , FuncExpr () Nothing [] [ReturnStmt () $ Just $ generateExpression exp1]
+        , FuncExpr () Nothing [] [ReturnStmt () $ Just $ generateExpression exp2]
         ]
 
 generateLiteral :: A.Literal -> Expression ()
