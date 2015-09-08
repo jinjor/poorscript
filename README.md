@@ -5,6 +5,9 @@ Yes, immutability! No, side-effects!
 (Work in progress)
 
 ## Syntax
+
+Assignment values to objects are not allowed.
+
 |JavaScript|PoorScript|
 |:--|:--|
 |`a.b = c`|N/A|
