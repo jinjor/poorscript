@@ -13,7 +13,7 @@ filterMap f (a:as) = maybecons (f a) $ filterMap f as
 
 separate :: (a -> Bool) -> [a] -> ([a], [a])
 separate f list =
-  foldl (\(l, r) el -> if (f el) then (el : l, r) else (l, el : r)) ([], []) list
+  foldr (\el (l, r) -> if (f el) then (el : l, r) else (l, el : r)) ([], []) list
 
 separateMap :: (a -> Either b c) -> [a] -> ([b], [c])
 separateMap f list =
