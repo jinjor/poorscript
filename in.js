@@ -1,3 +1,5 @@
+import My.Util;
+
 startApp = (init, upd, view) => {
   loop = (e, state) => {
     a = console.log(e);

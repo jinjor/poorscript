@@ -200,6 +200,21 @@ statements = endBy statement $ lineSep
 statements1 :: Parser [A.Statement]
 statements1 = endBy1 statement $ lineSep
 
+topStatement :: Parser A.TopStatement
+topStatement = (try $ do
+    imprt' <- string "import"
+    ws
+    name <- moduleName
+    return $ A.Import name)
+  <|> (statement >>= return . A.Statement)
+
+moduleName :: Parser A.ModuleName
+moduleName = sepBy1 (many1 alphaNum) $ char '.'
+
+
+topStatements :: Parser [A.TopStatement]
+topStatements = endBy topStatement $ lineSep
+
 lineSep :: Parser ()
 lineSep = do
   padded $ char ';'
@@ -279,6 +294,6 @@ literal = try intLiteral
 
 
 all' :: Parser A.Module
-all' = do x <- statements
+all' = do x <- topStatements
           eof
           return $ A.Module x

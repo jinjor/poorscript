@@ -3,18 +3,46 @@ module Generator(generate) where
 import Language.ECMAScript3.Syntax
 import Language.ECMAScript3.PrettyPrint
 import Data.List
+import Util
 
 import qualified AST as A
 
 generate :: A.Module -> String
-generate modul = show $ prettyPrint $ generate' modul
+generate modul = show $ prettyPrint $ generateModule modul
 
 
-generate' :: A.Module -> [Statement ()]
-generate' modul =
+generateModule :: A.Module -> [Statement ()]
+generateModule modul =
   case modul of
-    A.Module statements -> map generateStatement statements
+    A.Module statements ->
+      let
+        (imports, inner) = separateTopStatements statements
+        inner' = map generateStatement inner
+        exposed = exposedFunctions statements
+        keyValue name = (PropString () name, VarRef () $ Id () name)
+        obj = ObjectLit () (map keyValue exposed)
+        ret = ReturnStmt () $ Just $ obj
+        importRefs = map (\moduleName -> Id () $ intercalate "$" moduleName) imports
+        func = FuncExpr () Nothing importRefs (inner' ++ [ret])
+        apply = CallExpr () (VarRef () $ Id () "$apply") [func]
+        importArgs = ArrayLit () $ map (\moduleName -> StringLit () $ intercalate "." moduleName) imports
+        register = CallExpr () (VarRef () $ Id () "$register") [StringLit () "Main", importArgs, apply]
+      in
+        [ExprStmt () register]
 
+separateTopStatements :: [A.TopStatement] -> ([A.ModuleName], [A.Statement])
+separateTopStatements topStatements =
+  separateMap (\topStatement -> case topStatement of
+    A.Import name -> Left name
+    A.Statement s -> Right s
+  ) topStatements
+
+
+exposedFunctions :: [A.TopStatement] -> [A.Variable]
+exposedFunctions statements =
+  filterMap (\s -> case s of
+      A.Statement (A.Assign left _) -> Just left
+      _ -> Nothing) statements
 
 generateStatement :: A.Statement -> Statement ()
 generateStatement statement =

@@ -41,6 +41,13 @@ data Statement
   | EmptyStatement
   deriving Show
 
-data Module
-  = Module [Statement]
+data TopStatement
+  = Statement Statement
+  | Import ModuleName
   deriving Show
+
+data Module
+  = Module [TopStatement]
+  deriving Show
+
+type ModuleName = [String]

@@ -10,6 +10,10 @@ var $apply = function(f) {
 };
 var $tick = window.setImmediate ? setImmediate : setTimeout;
 var $extend = Object.assign;
+var $modules = {};
+var $register = function(name, imports, module) {
+  $modules[name] = module;
+};
 var http = {
   get: function(url) {
     return function task(cb) {
@@ -42,6 +46,6 @@ var $runTask = function(task) {
     }
   });
 }
-var run = function() {
-  $runTask(main);
+var $run = function() {
+  $runTask($modules.Main.main);
 };
