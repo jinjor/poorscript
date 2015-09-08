@@ -1,6 +1,6 @@
 # PoorScript
 
-Yes, immutable! No, side-effects!
+Yes, immutability! No, side-effects!
 
 (Work in progress)
 
