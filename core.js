@@ -32,9 +32,11 @@ var render = function(html) {
   }
 };
 var $noop = function(){}
+var count = 0;
 var $runTask = function(task) {
   $tick(function() {
     var newTask = task();
+    console.log(++count);
     if(newTask) {
       $runTask(newTask);
     }

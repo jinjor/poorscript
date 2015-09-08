@@ -7,11 +7,9 @@ view) {
       return $if(e === "afterUpdate",
       function () {
          return $apply(function () {
-            return function () {
-               return loop("afterUpdate2",
-               $extend(state,
-               {"model": {"title": 1}}));
-            };
+            return loop("afterUpdate2",
+            $extend(state,
+            {"model": {"title": 1}}));
          });
       },
       function () {
@@ -23,11 +21,9 @@ view) {
          },
          function () {
             return $apply(function () {
-               return function () {
-                  return loop("afterUpdate",
-                  $extend(state,
-                  {"model": init.model}));
-               };
+               return loop("afterUpdate",
+               $extend(state,
+               {"model": init.model}));
             });
          });
       });
