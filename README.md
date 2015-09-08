@@ -7,7 +7,7 @@ Yes, immutability! No, side-effects!
 ## Syntax
 |JavaScript|PoorScript|
 |:--|:--|
-|`a = b`||
+|`a.b = c`|N/A|
 |`Object.assign(a, b)`|`a # b`|
 
 ## Sample
