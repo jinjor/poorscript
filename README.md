@@ -17,8 +17,8 @@ a = 1;
 
 ### Assignment
 
-Assignment values to objects are not allowed.
-The `#` operator merges two objects and returns new object.
+Assigning values to objects are not allowed.
+Instead, the `#` operator merges two objects and returns new object.
 
 |JavaScript|PoorScript|
 |:--|:--|
