@@ -11,9 +11,7 @@ view) {
                return loop("afterUpdate2",
                $extend(state,
                {"model": {"title": 1}}));
-               ;
             };
-            ;
          });
       },
       function () {
@@ -21,7 +19,6 @@ view) {
          function () {
             return $apply(function () {
                return render(view(state.model));
-               ;
             });
          },
          function () {
@@ -30,17 +27,12 @@ view) {
                   return loop("afterUpdate",
                   $extend(state,
                   {"model": init.model}));
-                  ;
                };
-               ;
             });
          });
       });
-      ;
    };
-   return loop(0,
-   $apply(function () {    ;}));
-   ;
+   return loop(0,{});
 };
 var init = {"model": {"title": "Hello"}};
 var upd = function (e,model) {
@@ -50,9 +42,7 @@ var upd = function (e,model) {
 };
 var view = function (model) {
    return "<h1>" + model.title + "</h1>";
-   ;
 };
 var main = startApp(init,
 upd,
 view);
-;

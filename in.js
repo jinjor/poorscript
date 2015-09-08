@@ -19,7 +19,7 @@ startApp = (init, upd, view) => {
       };
     };
   };
-  loop(0, {a:0});
+  loop(0, {});
 };
 
 init = {
@@ -31,7 +31,7 @@ upd = (e, model) => {
   model = model# {
     title: e.data
   };
-  model
+  model;
 };
 
 view = (model) => {

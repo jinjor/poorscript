@@ -187,16 +187,23 @@ assign = do
 
 statement :: Parser A.Statement
 statement = (try $ do
-    (left, right) <- padded assign
+    (left, right) <- assign
     return $ A.Assign left right)
   <|> (try $ do
-    exp <- padded expression
+    exp <- expression
     return $ A.Return exp)
-  <|> (ws >>= (\_ -> return A.EmptyStatement))
 
 
 statements :: Parser [A.Statement]
-statements = sepBy statement $ char ';'
+statements = endBy statement $ lineSep
+
+statements1 :: Parser [A.Statement]
+statements1 = endBy1 statement $ lineSep
+
+lineSep :: Parser ()
+lineSep = do
+  padded $ char ';'
+  return ()
 
 escape :: Parser String
 escape = do
@@ -219,7 +226,7 @@ function =
     return (args, statements)
 
 statementsBlock :: Parser [A.Statement]
-statementsBlock = brackets' statements
+statementsBlock = brackets' statements1
 
 stringLiteral' :: Parser A.Literal
 stringLiteral' =
