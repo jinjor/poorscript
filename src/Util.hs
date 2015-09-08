@@ -1,12 +1,9 @@
 module Util(filterMap, separate, separateMap) where
 
--- Prepend an element to a list if available.  Leave the list as it is if the
--- first argument is Nothing.
 maybecons :: Maybe t -> [t] -> [t]
 maybecons Nothing l = l
 maybecons (Just e) l = e : l
 
--- Variant of map which deletes elements if the map function returns Nothing.
 filterMap :: (a -> Maybe b) -> [a] -> [b]
 filterMap _ [] = []
 filterMap f (a:as) = maybecons (f a) $ filterMap f as

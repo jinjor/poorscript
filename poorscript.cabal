@@ -15,6 +15,13 @@ build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
 
+
+Data-dir:
+  data
+
+Data-files:
+  core.js
+
 executable poorscript
   main-is:             Main.hs
   -- other-modules:
