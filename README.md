@@ -26,7 +26,7 @@ Instead, the `#` operator merges two objects and returns new object.
 |`a.b = c`|N/A|
 |`Object.assign(a, b)`|`a # b`|
 
-### if
+### If
 
 `if` returns the result.
 
