@@ -66,7 +66,7 @@ b = {
 loop = (count) => {
   _ = console.log(count);
   tick(() => {
-    loop(count + 1)
+    loop(count + 1);
   });
 }
 ```
