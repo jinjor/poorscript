@@ -83,7 +83,9 @@ startApp = (init, upd, view) => {
       });
     };
   };
-  loop(0, {});
+  () => {
+    loop(0, {});
+  };
 };
 
 init = {
