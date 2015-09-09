@@ -1,37 +1,40 @@
 $register("Main",
 ["My.Util"],
 $apply(function (My$Util) {
-   var startApp = function (init,
-   upd,
+   var startApp = function (upd,
    view) {
-      var loop = function (e,
-      state) {
-         var a = console.log(e);
-         return $if(e === "afterUpdate",
+      var listener = function (state) {
+         return function (e) {
+            var newState = $extend(state,
+            {"model": upd(e,state.model)});
+            var onEvent = listener(newState);
+            return render(view(newState.model)(onEvent));
+         };
+      };
+      var loop = function (e,state) {
+         return $if(e.type === "init",
          function () {
             return $apply(function () {
-               return loop("afterUpdate2",
-               $extend(state,
-               {"model": {"title": 1}}));
+               return http.get("sample.json",
+               function (p) {
+                  return render(view(state.model)(listener(state)));
+               },
+               function (p) {
+                  var newState = $extend(state,
+                  {"model": upd({"type": "loaded"
+                                ,"data": p.data},
+                  state.model)});
+                  return render(view(newState.model)(listener(newState)));
+               });
             });
          },
          function () {
-            return $if(e === "afterUpdate2",
-            function () {
-               return $apply(function () {
-                  return render(view(state.model));
-               });
-            },
-            function () {
-               return $apply(function () {
-                  return loop("afterUpdate",
-                  $extend(state,
-                  {"model": init.model}));
-               });
-            });
+            return null;
          });
       };
-      return loop(0,{});
+      return loop({"type": "init"},
+      {"mainLoop": loop
+      ,"model": upd({},null)});
    };
    var pararell = function (f,g) {
       return function (cb) {
@@ -73,21 +76,41 @@ $apply(function (My$Util) {
          };
       };
    };
-   var init = {"model": {"title": "Hello"}};
    var upd = function (e,model) {
-      var model = $extend(model,
-      {"title": e.data});
-      return model;
+      var a = console.log("action:",
+      e);
+      return $if(e.type === "loaded",
+      function () {
+         return $apply(function () {
+            return $extend(model,
+            {"data": json.stringify(e.data)});
+         });
+      },
+      function () {
+         return $if(e.type === "event",
+         function () {
+            return $apply(function () {
+               return $extend(model,
+               {"count": model.count + 1});
+            });
+         },
+         function () {
+            return $apply(function () {
+               return {"title": "Hello"
+                      ,"data": null
+                      ,"count": 0};
+            });
+         });
+      });
    };
    var view = function (model) {
-      return "<h1>" + model.title + "</h1>";
+      var a = console.log("model:",
+      model);
+      return html("<h1>" + model.title + "</h1>" + "<div>" + model.count + "</div>" + "<div>" + model.data + "</div>");
    };
-   var main = startApp(init,
-   upd,
-   view);
+   var main = startApp(upd,view);
    return {"startApp": startApp
           ,"pararell": pararell
-          ,"init": init
           ,"upd": upd
           ,"view": view
           ,"main": main};

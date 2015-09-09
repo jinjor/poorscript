@@ -1,23 +1,35 @@
 import My.Util;
 
-startApp = (init, upd, view) => {
-  loop = (e, state) => {
-    a = console.log(e);
-    if (e == "afterUpdate") {
-      loop("afterUpdate2", state # {
-        model: {
-          title: 1
-        }
-      });
-    } else if (e == "afterUpdate2") {
-      render(view(state.model));
-    } else {
-      loop("afterUpdate", state # {
-        model: init.model
-      });
+startApp = (upd, view) => {
+  listener = (state) => {
+    (e) => {
+      newState = state # {
+        model: upd(e, state.model)
+      };
+      onEvent = listener(newState);
+      render(view(newState.model)(onEvent));
     };
   };
-  loop(0, {});
+
+  loop = (e, state) => {
+    if (e.type == "init") {
+      http.get("sample.json", (p) => {
+        render(view(state.model)(listener(state)));
+      }, (p) => {
+        newState = state # {
+          model: upd({
+              type: "loaded",
+              data: p.data
+            }, state.model)
+        };
+        render(view(newState.model)(listener(newState)));
+      });
+    } else null;
+  };
+  loop({type: "init"}, {
+    mainLoop: loop,
+    model: upd({}, null)
+  });
 };
 
 pararell = (f, g) => {
@@ -49,19 +61,27 @@ pararell = (f, g) => {
   };
 };
 
-init = {
-  model: {
-    title: "Hello"
-  }
-};
 upd = (e, model) => {
-  model = model# {
-    title: e.data
+  a = console.log("action:", e);
+  if (e.type == "loaded") {
+    model # {
+      data : json.stringify(e.data)
+    };
+  } else if (e.type == "event") {
+    model # {
+      count : model.count + 1
+    };
+  } else {
+    {
+      title: "Hello",
+      data : null,
+      count: 0
+    };
   };
-  model;
 };
 
 view = (model) => {
-  "<h1>" + model.title + "</h1>";
+  a = console.log("model:", model);
+  html("<h1>" + model.title + "</h1>" + "<div>" + model.count + "</div>" + "<div>" + model.data + "</div>");
 };
-main = startApp(init, upd, view);
+main = startApp(upd, view);
