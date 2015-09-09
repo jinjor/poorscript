@@ -65,6 +65,9 @@ generateExpression exp =
 generatePrimaryExpression :: A.PrimaryExpression -> Expression ()
 generatePrimaryExpression pexp =
   case pexp of
+    A.Null -> NullLit ()
+    A.PrefixedExpression op pexp ->
+      PrefixExpr () (generatePrefix op) (generatePrimaryExpression pexp)
     A.BlockExpression statements ->
       CallExpr () (VarRef () $ Id () "$apply")
         [FuncExpr () Nothing [] (map generateStatement statements)]
@@ -84,6 +87,12 @@ generatePrimaryExpression pexp =
         , FuncExpr () Nothing [] [ReturnStmt () $ Just $ generateExpression exp1]
         , FuncExpr () Nothing [] [ReturnStmt () $ Just $ generateExpression exp2]
         ]
+
+generatePrefix :: A.Prefix -> PrefixOp
+generatePrefix op =
+  case op of
+    A.Not -> PrefixLNot
+
 
 generateLiteral :: A.Literal -> Expression ()
 generateLiteral literal =
@@ -108,3 +117,5 @@ toJSOp op =
     A.Div -> OpDiv
     A.Eq -> OpStrictEq
     A.NonEq -> OpStrictNEq
+    A.And -> OpLAnd
+    A.Or -> OpLOr

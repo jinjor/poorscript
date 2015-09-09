@@ -8,6 +8,8 @@ data BinOp
   | Div
   | Eq
   | NonEq
+  | And
+  | Or
   deriving Show
 
 data Expression
@@ -17,6 +19,7 @@ data Expression
 
 data PrimaryExpression
   = Expression Expression
+  | PrefixedExpression Prefix PrimaryExpression
   | BlockExpression [Statement]
   | Literal Literal
   | Variable Variable
@@ -24,6 +27,10 @@ data PrimaryExpression
   | PropertyAccess PrimaryExpression String
   | Call PrimaryExpression [Expression]
   | If Expression Expression Expression
+  | Null
+  deriving Show
+
+data Prefix = Not
   deriving Show
 
 data Literal

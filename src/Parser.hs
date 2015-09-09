@@ -60,8 +60,13 @@ term' :: Parser A.Expression
 term' = chainl1 factor $ padded mulop
 
 factor :: Parser A.Expression
-factor = chainl1 primaryExpression $ padded eqop
+factor = chainl1 factor' $ padded eqop
 
+factor' :: Parser A.Expression
+factor' = chainl1 factor'' $ padded andop
+
+factor'' :: Parser A.Expression
+factor'' = chainl1 primaryExpression $ padded orop
 
 
 extendop :: Parser (A.Expression -> A.Expression -> A.Expression)
@@ -101,6 +106,18 @@ eqop = (try $
     do
       _ <- string "!="
       return (\a b-> A.BinaryExpression A.NonEq a b))
+
+andop :: Parser (A.Expression -> A.Expression -> A.Expression)
+andop =
+    do
+      _ <- string "&&"
+      return (\a b-> A.BinaryExpression A.And a b)
+
+orop :: Parser (A.Expression -> A.Expression -> A.Expression)
+orop =
+    do
+      _ <- string "||"
+      return (\a b-> A.BinaryExpression A.Or a b)
 
 primaryExpression :: Parser A.Expression
 primaryExpression =
@@ -147,14 +164,24 @@ data ExpTail
 
 primaryExpression' :: Parser A.PrimaryExpression
 primaryExpression' =
-  (try $ ifExpr >>= (\(exp, _then, _else) -> return $ A.If exp _then _else))
+  (try $ (string "null") >>= (\_ -> return A.Null))
+  <|> (try $ ifExpr >>= (\(exp, _then, _else) -> return $ A.If exp _then _else))
   <|> (try $ statementsBlock >>= return . A.BlockExpression)
-  <|> (try $ do
-    x <- parens' $ expression
-    -- notFollowedBy $ padded $ string "=>"
-    return $ A.Expression x)
+  <|> (try $ parens' $ expression >>= return . A.Expression)
+  <|> (try $ prefixedExpression)
   <|> (try $ literal >>= return . A.Literal)
   <|> (variable >>= return . A.Variable)
+
+
+prefixedExpression :: Parser A.PrimaryExpression
+prefixedExpression = (try $ do
+  op <- prefixOp
+  ws
+  pexp <- primaryExpression'
+  return $ A.PrefixedExpression op pexp)
+
+prefixOp :: Parser A.Prefix
+prefixOp = (try $ do char '!' >>= (\_ -> return A.Not))
 
 ifExpr :: Parser (A.Expression, A.Expression, A.Expression)
 ifExpr = do
