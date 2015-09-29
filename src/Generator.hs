@@ -66,8 +66,8 @@ generatePrimaryExpression :: A.PrimaryExpression -> Expression ()
 generatePrimaryExpression pexp =
   case pexp of
     A.Null -> NullLit ()
-    A.PrefixedExpression op pexp ->
-      PrefixExpr () (generatePrefix op) (generatePrimaryExpression pexp)
+    A.PrefixedExpression op exp ->
+      PrefixExpr () (generatePrefix op) (generateExpression exp)
     A.BlockExpression statements ->
       CallExpr () (VarRef () $ Id () "$apply")
         [FuncExpr () Nothing [] (map generateStatement statements)]

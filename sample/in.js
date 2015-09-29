@@ -84,4 +84,34 @@ view = (model) => {
   a = console.log("model:", model);
   html("<h1>" + model.title + "</h1>" + "<div>" + model.count + "</div>" + "<div>" + model.data + "</div>");
 };
-main = startApp(upd, view);
+main = (e, state) => {
+  a = console.log(e, state);
+
+  if(e == "a:waiting") {
+    update({
+      a: "waiting"
+    });
+  } else if(e == "a:done") {
+    update({
+      a: "done"
+    });
+  } else if(e == "b:waiting") {
+    update({
+      b: "waiting"
+    });
+  } else if(e == "b:done") {
+    update({
+      b: "done"
+    });
+  } else if(state.a == "done" && state.b == "done") {
+    render(html("<h1>hello</h1>"));
+  } else if(!state.a) {
+    timeout(2000, "a:waiting", "a:done");
+  } else if(!state.b) {
+    timeout(1000, "b:waiting", "b:done");
+  } else {
+    null;
+  };
+
+
+};

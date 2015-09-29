@@ -31,6 +31,33 @@ var html = function(str) {
     return div;
   };
 };
+var html = function(str) {
+  var div = document.createElement('div');
+  div.innerHTML = str;
+  div.addEventListener('click', function(e) {
+    var task = onEvent({
+      type: 'event',
+      event: e
+    });
+    $runTask(task);
+  });
+  return div;
+};
+var update = function(obj) {
+  $state = $extend($state, obj)
+  return function() {
+    $runTask($modules.Main.main, [null, $state]);
+  };
+};
+var timeout = function(time, e1, e2) {
+  return function() {
+    $runTask($modules.Main.main, [e1, $state]);
+    setTimeout(function() {
+      $runTask($modules.Main.main, [e2, $state]);
+    }, time);
+  }
+};
+
 var http = {
   get: function(url, cb1, cb2) {
     return function task() {
@@ -72,12 +99,16 @@ var render = function(element, cb) {
 };
 var $noop = function(){}
 var count = 0;
-var $runTask = function(task) {
+var $state = {};
+var $runTask = function(task, args) {
   if (!task) {
     return;
   }
+  if(typeof task !== "function") {
+    console.log(task);
+  }
   $tick(function() {
-    var newTask = task();
+    var newTask = task.apply(null, args);
     console.log(++count);
     if(newTask) {
       $runTask(newTask);
@@ -85,5 +116,5 @@ var $runTask = function(task) {
   });
 }
 var $run = function() {
-  $runTask($modules.Main.main);
+  $runTask($modules.Main.main, [null, $state]);
 };

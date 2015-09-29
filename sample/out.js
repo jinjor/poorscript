@@ -108,7 +108,72 @@ $apply(function (My$Util) {
       model);
       return html("<h1>" + model.title + "</h1>" + "<div>" + model.count + "</div>" + "<div>" + model.data + "</div>");
    };
-   var main = startApp(upd,view);
+   var main = function (e,state) {
+      var a = console.log(e,state);
+      return $if(e === "a:waiting",
+      function () {
+         return $apply(function () {
+            return update({"a": "waiting"});
+         });
+      },
+      function () {
+         return $if(e === "a:done",
+         function () {
+            return $apply(function () {
+               return update({"a": "done"});
+            });
+         },
+         function () {
+            return $if(e === "b:waiting",
+            function () {
+               return $apply(function () {
+                  return update({"b": "waiting"});
+               });
+            },
+            function () {
+               return $if(e === "b:done",
+               function () {
+                  return $apply(function () {
+                     return update({"b": "done"});
+                  });
+               },
+               function () {
+                  return $if(state.a === "done" && state.b === "done",
+                  function () {
+                     return $apply(function () {
+                        return render(html("<h1>hello</h1>"));
+                     });
+                  },
+                  function () {
+                     return $if(!state.a,
+                     function () {
+                        return $apply(function () {
+                           return timeout(2000,
+                           "a:waiting",
+                           "a:done");
+                        });
+                     },
+                     function () {
+                        return $if(!state.b,
+                        function () {
+                           return $apply(function () {
+                              return timeout(1000,
+                              "b:waiting",
+                              "b:done");
+                           });
+                        },
+                        function () {
+                           return $apply(function () {
+                              return null;
+                           });
+                        });
+                     });
+                  });
+               });
+            });
+         });
+      });
+   };
    return {"startApp": startApp
           ,"pararell": pararell
           ,"upd": upd

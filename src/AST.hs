@@ -19,7 +19,7 @@ data Expression
 
 data PrimaryExpression
   = Expression Expression
-  | PrefixedExpression Prefix PrimaryExpression
+  | PrefixedExpression Prefix Expression
   | BlockExpression [Statement]
   | Literal Literal
   | Variable Variable

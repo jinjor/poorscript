@@ -60,13 +60,13 @@ term' :: Parser A.Expression
 term' = chainl1 factor $ padded mulop
 
 factor :: Parser A.Expression
-factor = chainl1 factor' $ padded eqop
+factor = chainl1 factor' $ padded orop
 
 factor' :: Parser A.Expression
 factor' = chainl1 factor'' $ padded andop
 
 factor'' :: Parser A.Expression
-factor'' = chainl1 primaryExpression $ padded orop
+factor'' = chainl1 primaryExpression $ padded eqop
 
 
 extendop :: Parser (A.Expression -> A.Expression -> A.Expression)
@@ -122,6 +122,7 @@ orop =
 primaryExpression :: Parser A.Expression
 primaryExpression =
   (try $ function >>= (\(args, statements) -> return $ A.PrimaryExpression $ A.Function args statements))
+  <|> (try $ prefixedExpression >>= return . A.PrimaryExpression)
   <|> (try $ do
     exp <- primaryExpression'
     ws
@@ -168,7 +169,6 @@ primaryExpression' =
   <|> (try $ ifExpr >>= (\(exp, _then, _else) -> return $ A.If exp _then _else))
   <|> (try $ statementsBlock >>= return . A.BlockExpression)
   <|> (try $ parens' $ expression >>= return . A.Expression)
-  <|> (try $ prefixedExpression)
   <|> (try $ literal >>= return . A.Literal)
   <|> (variable >>= return . A.Variable)
 
@@ -177,7 +177,7 @@ prefixedExpression :: Parser A.PrimaryExpression
 prefixedExpression = (try $ do
   op <- prefixOp
   ws
-  pexp <- primaryExpression'
+  pexp <- primaryExpression
   return $ A.PrefixedExpression op pexp)
 
 prefixOp :: Parser A.Prefix
